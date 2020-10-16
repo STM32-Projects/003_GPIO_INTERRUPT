@@ -9,8 +9,8 @@
   *
   * Overview
   * ---------
-  * This application toggle the User LED(LD2, Green), if there is a key press
-  * event from the user otherwise the LED remains in OFF state.
+  * Here the User LED changes it's state from "continuously toggling" to
+  * "always off" and vice versa on click of the User Button.
   *
   * User LED(LD2, Green) is connected to PA5.
   * User Button(B1, Blue in Color) is connected to PC13
@@ -45,16 +45,6 @@ int main(void)
 		} else {
 			HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET);
 		}
-
-		/*
-		if (HAL_GPIO_ReadPin(USER_BUTTON_GPIO_PORT,
-				             USER_BUTTON_PIN) == GPIO_PIN_RESET) {
-			HAL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
-			HAL_Delay(100);
-		} else {
-			HAL_GPIO_WritePin(LED2_GPIO_PORT, LED2_PIN, GPIO_PIN_RESET);
-		}
-		*/
 	}
 }
 
@@ -111,6 +101,10 @@ void Button_Init()
 	btnGPIO.Speed = GPIO_SPEED_FREQ_LOW;
 
 	HAL_GPIO_Init(USER_BUTTON_GPIO_PORT, &btnGPIO);
+
+	// Enable Button Interrupt with highest priority possible
+	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 }
 
 /**
@@ -122,15 +116,7 @@ void Button_Init()
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == USER_BUTTON_PIN) {
-		GPIO_PinState state = HAL_GPIO_ReadPin(USER_BUTTON_GPIO_PORT, \
-						                       USER_BUTTON_PIN);
-		if (state == GPIO_PIN_RESET) {
-			should_blink = true;
-		} else {
-			should_blink = false;
-		}
-
-
+		should_blink = !should_blink;
 	}
 }
 
